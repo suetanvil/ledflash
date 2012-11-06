@@ -1,0 +1,52 @@
+=head1 NAME
+
+ledflash - Daemon to slowly flash the front-panel LED of a PogoPlug
+
+=head1 SYNOPSIS
+
+B<ledflash> [-d]
+
+=head1 DESCRIPTION
+
+C<ledflash> is a simple daemon which flashes the front panel LED of a
+PogoPlug (or similar device) in order to provide visual confirmation
+that the device has not (completely) crashed.  Since most such devices
+do not have serial consoles, this may be the only way to get
+information out of it, should the network connection fail.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-d>
+
+Enables debug mode.  This prevents ledflash from running as a daemon.
+
+=back
+
+=head1 BUGS AND QUIRKS
+
+The LED is flashed by writing strings to the special file
+
+    /sys/class/leds/plug:green:health/trigger
+
+which provides an interface to the Linux LED subsystem (described
+L<here|http://www.kernel.org/doc/Documentation/leds/leds-class.txt>.)
+
+Unfortunately, some reading of the relevant PogoPlug mailing lists and
+fora seems to indicate that this can change with a version upgrade.
+I'm waiting to see what happens but it may be necessary to be smarter
+about finding the control file.
+
+In the meantime, you may need to periodically modify the constant
+C<FLASHFILE> and recompile C<ledflash> when this happens.
+
+=head1 AUTHOR, COPYRIGHT, LICENSING
+
+B<ledflash> was written by Chris Reuter.
+
+Copyright (C) 2012 Chris Reuter and distributed under the terms of the
+GNU GPLv2.  This is free software: you are free to change and
+redistribute it.
+
+There is NO WARRANTY, to the extent permitted by law.
