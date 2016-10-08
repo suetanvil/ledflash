@@ -29,11 +29,29 @@
 typedef enum {FALSE = 0, TRUE = 1} Bool;
 
 
-/* This is the "file" that controls the LED device.  This seems to
- * vary widely between systems and kernels, so you may need to modify
- * it.  */
-#define FLASHFILE "/sys/class/leds/plug:green:health/trigger"
-//#define FLASHFILE "/tmp/ledcolor.txt"       /* For debugging. */
+/* This is the "file" that controls the LED device.  Currently, we
+ * support Raspbian and Debian ARM on PogoPlug.  Adding others should
+ * be fairly straightforward. */
+#ifdef PLATFORM_POGOPLUG    /* Debian ARM on a repurposed Pogoplug. */
+#   define FLASHFILE   "/sys/class/leds/plug:green:health/trigger"
+#   define ON          "default-on"
+#   define OFF         "none"
+#endif
+
+#ifdef PLATFORM_RASPBIAN    /* Raspberry Pi running Raspbian. */
+#   define FLASHFILE   "/sys/class/leds/led0/brightness"
+#   define ON          "1"
+#   define OFF         "0"
+#endif
+
+/* If no platform is defined, we assume it's a debugging configuration
+ * and just write to a file in /tmp. */
+#if !defined(PLATFORM_RASPBIAN) && !defined(PLATFORM_POGOPLUG)
+#   define FLASHFILE    "/tmp/ledcolor.txt"
+#   define ON           "1"
+#   define OFF          "0"
+#endif
+
 
 
 /* Other constants: */
@@ -79,7 +97,7 @@ flashloop() {
     Bool on = FALSE;
 
     for(;;) {
-        setflash(on ? "default-on" : "none");
+        setflash(on ? ON : OFF);
         on = !on;
         sleep(INTERVAL);
     }/* for*/
@@ -127,15 +145,13 @@ daemonize(Bool debugMode) {
 
     /* Switch to root dir. */
     if (chdir("/") < 0) {
-        syslog(LOG_ERR, "unable to chdir to root directory, bailing.\n");
-        exit(1);
+        die("Unable to chdir to root directory, bailing.\n");
     }/* if */
 
     /* Switch to a new session. */
     sid = setsid();
     if (sid < 0) {
-        syslog(LOG_ERR, "setsid() failed, bailing.\n");
-        exit(1);
+        die("setsid() failed, bailing.\n");
     }/* if */
 
     /* Close the standard file handles. */

@@ -1,8 +1,12 @@
 
+# Target platform.  Leave both unset for testing on LED-less systems.
+PLATFORM=-DPLATFORM_RASPBIAN
+#PLATFORM=-DPLATFORM_POGOPLUG
+
 # We compile with -g because a stripped debug binary turns out to be
 # smaller than an optimized one and size is what we care about here.
 CC=gcc
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall $(PLATFORM)
 
 LINK=gcc
 LFLAGS=
